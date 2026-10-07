@@ -1,0 +1,36 @@
+# Render Blueprint for FoodieSafe.
+#
+# Deploy with: Render Dashboard -> New -> Blueprint -> pick this repo.
+# Render reads this file and creates the web service for you.
+#
+# NOTE on data persistence:
+#   The "free" plan has an EPHEMERAL filesystem, so database.db is reset
+#   whenever the service restarts or redeploys. That is fine for a demo.
+#   For permanent data, either:
+#     * switch plan to "starter" and uncomment the disk section below, or
+#     * use the FOODIESAFE_DB env var to point at a mounted disk path, or
+#     * deploy on PythonAnywhere, whose free filesystem is persistent.
+
+services:
+  - type: web
+    name: foodiesafe
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: FOODIESAFE_SECRET
+        generateValue: true
+      - key: FOODIESAFE_DEBUG
+        value: "0"
+      # Point SQLite at a persistent disk (requires a paid plan + the disk
+      # block below). Leave commented out on the free plan.
+      # - key: FOODIESAFE_DB
+      #   value: /var/data/database.db
+    # Persistent disk (paid plans only):
+    # disk:
+    #   name: foodiesafe-data
+    #   mountPath: /var/data
+    #   sizeGB: 1
